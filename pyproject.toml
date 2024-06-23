@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pybadges"
-version = "3.0.1"
+version = "3.1.0"
 description = "A library and command-line tool for generating Github-style badges"
 authors = ["Brian Quinlan <brian@sweetapp.com>"]
 license = "Apache-2.0"
@@ -18,7 +18,7 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.11"
+python = ">=3.10,<3.13"
 Jinja2 = ">=3,<4"
 requests = ">=2.22.0,<3"
 

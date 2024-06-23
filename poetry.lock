@@ -189,6 +189,20 @@ files = [
 ]
 
 [[package]]
+name = "exceptiongroup"
+version = "1.2.1"
+description = "Backport of PEP 654 (exception groups)"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "exceptiongroup-1.2.1-py3-none-any.whl", hash = "sha256:5258b9ed329c5bbdd31a309f53cbfb0b155341807f6ff7606a1e801a891b29ad"},
+    {file = "exceptiongroup-1.2.1.tar.gz", hash = "sha256:a4785e48b045528f5bfe627b6ad554ff32def154f42372786903b7abcfe1aa16"},
+]
+
+[package.extras]
+test = ["pytest (>=6)"]
+
+[[package]]
 name = "filelock"
 version = "3.15.4"
 description = "A platform independent file lock."
@@ -583,6 +597,7 @@ files = [
 argcomplete = ">=1.9.4,<4.0"
 colorlog = ">=2.6.1,<7.0.0"
 packaging = ">=20.9"
+tomli = {version = ">=1", markers = "python_version < \"3.11\""}
 virtualenv = ">=20.14.1"
 
 [package.extras]
@@ -730,9 +745,11 @@ files = [
 
 [package.dependencies]
 colorama = {version = "*", markers = "sys_platform == \"win32\""}
+exceptiongroup = {version = ">=1.0.0rc8", markers = "python_version < \"3.11\""}
 iniconfig = "*"
 packaging = "*"
 pluggy = ">=1.5,<2.0"
+tomli = {version = ">=1", markers = "python_version < \"3.11\""}
 
 [package.extras]
 dev = ["argcomplete", "attrs (>=19.2)", "hypothesis (>=3.56)", "mock", "pygments (>=2.7.2)", "requests", "setuptools", "xmlschema"]
@@ -772,6 +789,17 @@ files = [
 [package.extras]
 docs = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "pygments-github-lexers (==0.0.5)", "pyproject-hooks (!=1.1)", "rst.linker (>=1.9)", "sphinx (>=3.5)", "sphinx-favicon", "sphinx-inline-tabs", "sphinx-lint", "sphinx-notfound-page (>=1,<2)", "sphinx-reredirects", "sphinxcontrib-towncrier"]
 testing = ["build[virtualenv] (>=1.0.3)", "filelock (>=3.4.0)", "importlib-metadata", "ini2toml[lite] (>=0.14)", "jaraco.develop (>=7.21)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "jaraco.test", "mypy (==1.10.0)", "packaging (>=23.2)", "pip (>=19.1)", "pyproject-hooks (!=1.1)", "pytest (>=6,!=8.1.1)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-home (>=0.5)", "pytest-mypy", "pytest-perf", "pytest-ruff (>=0.3.2)", "pytest-subprocess", "pytest-timeout", "pytest-xdist (>=3)", "tomli", "tomli-w (>=1.0.0)", "virtualenv (>=13.0.0)", "wheel"]
+
+[[package]]
+name = "tomli"
+version = "2.0.1"
+description = "A lil' TOML parser"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "tomli-2.0.1-py3-none-any.whl", hash = "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc"},
+    {file = "tomli-2.0.1.tar.gz", hash = "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"},
+]
 
 [[package]]
 name = "urllib3"
@@ -847,5 +875,5 @@ devenv = ["black", "coverage", "flake8", "zest.releaser[recommended]"]
 
 [metadata]
 lock-version = "2.0"
-python-versions = ">=3.11"
-content-hash = "dae4641aab4ad753f246d600f22df491e003ae90affaf2b7e1318588c988d67c"
+python-versions = ">=3.10,<3.13"
+content-hash = "39677a99bb230018d27de81820766cf4f2ae097e4e66584d130b7b1af9dfca80"
