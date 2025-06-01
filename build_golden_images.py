@@ -18,7 +18,7 @@ import argparse
 import json
 import os
 import os.path
-import pkg_resources
+import importlib.resources as resources
 
 import pybadges
 from tests import image_server
@@ -48,15 +48,13 @@ def main():
 
     parser.add_argument(
         '--source-path',
-        default=pkg_resources.resource_filename(__name__,
-                                                'tests/test-badges.json'),
+        default=str(resources.files('tests').joinpath('test-badges.json')),
         help='the text to show on the left-hand-side of the badge')
 
     parser.add_argument(
         '--destination-dir',
-        default=pkg_resources.resource_filename(__name__,
-                                                'tests/golden-images'),
-        help='the text to show on the left-hand-side of the badge')
+        default=str(resources.files('tests').joinpath('golden-images')),
+    help='the text to show on the left-hand-side of the badge')
     args = parser.parse_args()
     generate_images(args.source_path, args.destination_dir)
 

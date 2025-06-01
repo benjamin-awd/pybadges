@@ -30,7 +30,7 @@ gh-badges library
 """
 
 import base64
-import imghdr
+import filetype
 import mimetypes
 from typing import Optional
 import urllib.parse
@@ -42,7 +42,6 @@ import requests
 
 from pybadges import text_measurer
 from pybadges import precalculated_text_measurer
-from pybadges.version import __version__
 
 
 def load_template(name):
@@ -92,39 +91,89 @@ def _remove_blanks(node):
 
 
 def _embed_image(url: str) -> str:
-    parsed_url = urllib.parse.urlparse(url)
-
-    if parsed_url.scheme == "data":
+    """
+    Given a URL (data-URI, http(s), or local path), return a
+    data:image/...;base64,... string or raise ValueError if
+    the file is not a valid image.
+    """
+    # 1) If it’s already a data URL, return immediately
+    if url.startswith("data:"):
         return url
-    elif parsed_url.scheme.startswith("http"):
-        r = requests.get(url)
-        r.raise_for_status()
-        content_type = r.headers.get("content-type")
-        if content_type is None:
-            raise ValueError('no "Content-Type" header')
-        content_type, image_type = content_type.split("/")
-        if content_type != "image":
-            raise ValueError('expected an image, got "{0}"'.format(content_type))
-        image_data = r.content
-    elif parsed_url.scheme:
-        raise ValueError('unsupported scheme "{0}"'.format(parsed_url.scheme))
-    else:
-        with open(url, "rb") as f:
-            image_data = f.read()
-        image_type = imghdr.what(None, image_data)
-        if not image_type:
-            mime_type, _ = mimetypes.guess_type(url, strict=False)
-            if not mime_type:
-                raise ValueError("not able to determine file type")
-            else:
-                content_type, image_type = mime_type.split("/")
-                if content_type != "image":
-                    raise ValueError(
-                        'expected an image, got "{0}"'.format(content_type or "unknown")
-                    )
 
-    encoded_image = base64.b64encode(image_data).decode("ascii")
-    return "data:image/{};base64,{}".format(image_type, encoded_image)
+    parsed = urllib.parse.urlparse(url)
+
+    # 2) Remote HTTP/HTTPS
+    if parsed.scheme in ("http", "https"):
+        image_data, mime = _fetch_remote_image(url)
+
+    # 3) Any other non-empty scheme is unsupported (e.g. “ftp:” or “file:”)
+    elif parsed.scheme:
+        raise ValueError(f'unsupported scheme "{parsed.scheme}"')
+
+    # 4) No scheme → treat as local filesystem path
+    else:
+        image_data, mime = _fetch_local_image_and_mime(url)
+
+    # 5) Base64-encode and return
+    encoded = base64.b64encode(image_data).decode("ascii")
+    return f"data:{mime};base64,{encoded}"
+
+
+def _fetch_remote_image(url: str) -> tuple[bytes, str]:
+    """
+    Downloads the URL, checks Content-Type, and returns (bytes, mime‐string).
+    Raises ValueError if Content-Type is missing or not an image.
+    """
+    resp = requests.get(url)
+    resp.raise_for_status()
+
+    content_type = resp.headers.get("content-type")
+    if not content_type:
+        raise ValueError('no "Content-Type" header')
+
+    major, minor = content_type.split("/", 1)
+    if major.lower() != "image":
+        raise ValueError(f'expected an image, got "{major}"')
+
+    return resp.content, content_type
+
+
+def _fetch_local_image_and_mime(path: str) -> tuple[bytes, str]:
+    """
+    Reads the file at `path` and tries to figure out a valid image MIME.
+    Priority:
+       1) filetype.guess(...) on raw bytes
+       2) “<svg…” check for inline SVG
+       3) mimetypes.guess_type(path) fallback by extension
+       4) else → raise ValueError
+    """
+    with open(path, "rb") as f:
+        data = f.read()
+
+    # 1) Try to let `filetype` detect a binary image (PNG, JPEG, etc.)
+    kind = filetype.guess(data)
+    if kind:
+        if not kind.mime.startswith("image/"):
+            major = kind.mime.split("/", 1)[0]
+            raise ValueError(f'expected an image, got "{major}"')
+        return data, kind.mime
+
+    # 2) If filetype didn’t detect anything, maybe it’s an SVG (text/XML)
+    head = data[:500].lower()
+    if b"<svg" in head:
+        return data, "image/svg+xml"
+
+    # 3) Finally, try to guess by file extension via `mimetypes`
+    guessed_mime, _ = mimetypes.guess_type(path)
+    if guessed_mime:
+        major = guessed_mime.split("/", 1)[0]
+        if major != "image":
+            # e.g. “text/plain” for .txt → treat as wrong type
+            raise ValueError(f'expected an image, got "{major}"')
+        return data, guessed_mime
+
+    # 4) If we still don’t know, give up
+    raise ValueError("not able to determine file type")
 
 
 def badge(
